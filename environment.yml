@@ -1,0 +1,20 @@
+# Basis-Umgebung. PyTorch wird separat installiert, weil die XPU-Wheels aus einem
+# eigenen Index kommen und nicht mit PyPI gemischt werden koennen - siehe README.
+#
+#   conda env create -f environment.yml
+#   conda activate ml-bachelor-del
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/xpu
+name: ml-bachelor-del
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - pip
+  - pip:
+      - wandb
+      - scikit-learn
+      - pandas
+      - matplotlib
+      - torchinfo
+      - jupyterlab
+      - ipykernel

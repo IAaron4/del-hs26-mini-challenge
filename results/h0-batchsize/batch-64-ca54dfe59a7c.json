@@ -1,0 +1,683 @@
+{
+  "config": {
+    "cnn": {
+      "stage_widths": [
+        32,
+        64,
+        128
+      ],
+      "convs_per_stage": 1,
+      "kernel_size": 3,
+      "pooling": "max",
+      "fc_widths": [
+        256
+      ],
+      "dropout": 0.0,
+      "conv_dropout": 0.0,
+      "batch_norm": false,
+      "activation": "relu",
+      "init": "default",
+      "residual": false,
+      "num_classes": 10,
+      "image_size": 64,
+      "in_channels": 3
+    },
+    "optimizer": "sgd",
+    "lr": 0.03,
+    "momentum": 0.0,
+    "weight_decay": 0.0,
+    "batch_size": 64,
+    "epochs": 20,
+    "seed": 42,
+    "augment": [],
+    "train_subset": 6000,
+    "probe": true,
+    "name": "batch-64",
+    "group": "h0-batchsize",
+    "params": 2193226
+  },
+  "records": [
+    {
+      "epoch": 0,
+      "train_loss": 1.9449848025403125,
+      "train_accuracy": 0.269,
+      "train_macro_f1": 0.2030888741241157,
+      "val_loss": 1.681008511222899,
+      "val_accuracy": 0.30444444444444446,
+      "val_macro_f1": 0.20349085282908227,
+      "seconds": 50.969812370999534,
+      "gradient_norms": {
+        "features.0.body.0": 0.024780452251434326,
+        "features.1.body.0": 0.08215009421110153,
+        "features.2.body.0": 0.1355493813753128,
+        "classifier.1": 0.5272976756095886,
+        "classifier.3": 0.0865422710776329
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.0008430482121184468,
+        "features.1.body.0": 0.0006050927331671119,
+        "features.2.body.0": 0.0004992081667296588,
+        "classifier.1": 0.0003641430812422186,
+        "classifier.3": 0.0017104417784139514
+      },
+      "gradient_ratio": 0.4928833139822998,
+      "activation_std": null
+    },
+    {
+      "epoch": 1,
+      "train_loss": 1.5631636026057791,
+      "train_accuracy": 0.38966666666666666,
+      "train_macro_f1": 0.34739938615976307,
+      "val_loss": 1.359677318483591,
+      "val_accuracy": 0.4654320987654321,
+      "val_macro_f1": 0.39733800485002496,
+      "seconds": 54.386392057000194,
+      "gradient_norms": {
+        "features.0.body.0": 2.0333569049835205,
+        "features.1.body.0": 2.2802071571350098,
+        "features.2.body.0": 2.1732523441314697,
+        "classifier.1": 3.481832981109619,
+        "classifier.3": 2.4400136470794678
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.06917620450258255,
+        "features.1.body.0": 0.016795318573713303,
+        "features.2.body.0": 0.008003780618309975,
+        "classifier.1": 0.002404544036835432,
+        "classifier.3": 0.04822501540184021
+      },
+      "gradient_ratio": 1.4344464989002963,
+      "activation_std": null
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.3726140603106072,
+      "train_accuracy": 0.498,
+      "train_macro_f1": 0.47793448240946274,
+      "val_loss": 1.2174045611172915,
+      "val_accuracy": 0.5520987654320988,
+      "val_macro_f1": 0.5231884418590212,
+      "seconds": 52.782549391999964,
+      "gradient_norms": {
+        "features.0.body.0": 1.0348097085952759,
+        "features.1.body.0": 1.3136193752288818,
+        "features.2.body.0": 1.0681878328323364,
+        "classifier.1": 1.8993093967437744,
+        "classifier.3": 1.8335998058319092
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.0352049395442009,
+        "features.1.body.0": 0.009675722569227219,
+        "features.2.body.0": 0.003933980595320463,
+        "classifier.1": 0.0013116213958710432,
+        "classifier.3": 0.03623969852924347
+      },
+      "gradient_ratio": 0.9714468103478405,
+      "activation_std": null
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.1946432089551966,
+      "train_accuracy": 0.5601666666666667,
+      "train_macro_f1": 0.5471366287683094,
+      "val_loss": 1.7084925714880228,
+      "val_accuracy": 0.4911111111111111,
+      "val_macro_f1": 0.41667170372172624,
+      "seconds": 55.73986248399979,
+      "gradient_norms": {
+        "features.0.body.0": 1.3615350723266602,
+        "features.1.body.0": 1.4928438663482666,
+        "features.2.body.0": 1.492873191833496,
+        "classifier.1": 2.116380214691162,
+        "classifier.3": 1.733433723449707
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.046320367604494095,
+        "features.1.body.0": 0.01099583599716425,
+        "features.2.body.0": 0.00549803301692009,
+        "classifier.1": 0.0014615231193602085,
+        "classifier.3": 0.034259993582963943
+      },
+      "gradient_ratio": 1.3520249935927386,
+      "activation_std": null
+    },
+    {
+      "epoch": 4,
+      "train_loss": 1.030325154674814,
+      "train_accuracy": 0.6263333333333333,
+      "train_macro_f1": 0.6160685705534228,
+      "val_loss": 0.911287086084485,
+      "val_accuracy": 0.6777777777777778,
+      "val_macro_f1": 0.6640758635040804,
+      "seconds": 68.48752550099925,
+      "gradient_norms": {
+        "features.0.body.0": 1.9688754081726074,
+        "features.1.body.0": 2.414290189743042,
+        "features.2.body.0": 2.134591579437256,
+        "classifier.1": 2.842507839202881,
+        "classifier.3": 2.5809857845306396
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.06698250025510788,
+        "features.1.body.0": 0.01778293214738369,
+        "features.2.body.0": 0.007861386984586716,
+        "classifier.1": 0.0019629790913313627,
+        "classifier.3": 0.051011208444833755
+      },
+      "gradient_ratio": 1.3130937748229652,
+      "activation_std": null
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.9486862408353928,
+      "train_accuracy": 0.6533333333333333,
+      "train_macro_f1": 0.6438001470419057,
+      "val_loss": 0.9849697258323431,
+      "val_accuracy": 0.6291358024691358,
+      "val_macro_f1": 0.604360304825781,
+      "seconds": 71.37824720800018,
+      "gradient_norms": {
+        "features.0.body.0": 1.7032896280288696,
+        "features.1.body.0": 1.215576410293579,
+        "features.2.body.0": 0.8991366624832153,
+        "classifier.1": 1.3793247938156128,
+        "classifier.3": 1.0355068445205688
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.05794708803296089,
+        "features.1.body.0": 0.008953564800322056,
+        "features.2.body.0": 0.0033113877288997173,
+        "classifier.1": 0.0009525308851152658,
+        "classifier.3": 0.020466001704335213
+      },
+      "gradient_ratio": 2.831382937913381,
+      "activation_std": null
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.8525668458735689,
+      "train_accuracy": 0.6873333333333334,
+      "train_macro_f1": 0.6807572513487015,
+      "val_loss": 0.7934580575674772,
+      "val_accuracy": 0.7101234567901235,
+      "val_macro_f1": 0.7028116662015553,
+      "seconds": 72.26570418399933,
+      "gradient_norms": {
+        "features.0.body.0": 2.2176783084869385,
+        "features.1.body.0": 1.4813553094863892,
+        "features.2.body.0": 1.402751088142395,
+        "classifier.1": 2.6400957107543945,
+        "classifier.3": 2.607949733734131
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.0754469558596611,
+        "features.1.body.0": 0.010911212302744389,
+        "features.2.body.0": 0.0051661222241818905,
+        "classifier.1": 0.0018232258735224605,
+        "classifier.3": 0.05154413357377052
+      },
+      "gradient_ratio": 1.4637350679623047,
+      "activation_std": null
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.7836007818262628,
+      "train_accuracy": 0.715,
+      "train_macro_f1": 0.7086823204745301,
+      "val_loss": 0.8731631059199572,
+      "val_accuracy": 0.685679012345679,
+      "val_macro_f1": 0.67549262434663,
+      "seconds": 74.5862579629993,
+      "gradient_norms": {
+        "features.0.body.0": 1.7407128810882568,
+        "features.1.body.0": 1.0388489961624146,
+        "features.2.body.0": 1.103397250175476,
+        "classifier.1": 1.7661936283111572,
+        "classifier.3": 1.2521774768829346
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.05922025069594383,
+        "features.1.body.0": 0.007651845924556255,
+        "features.2.body.0": 0.0040636505000293255,
+        "classifier.1": 0.0012197120813652873,
+        "classifier.3": 0.02474833093583584
+      },
+      "gradient_ratio": 2.3928987716174546,
+      "activation_std": null
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.7827844727546611,
+      "train_accuracy": 0.7088333333333333,
+      "train_macro_f1": 0.7030548929449807,
+      "val_loss": 0.8098673848435283,
+      "val_accuracy": 0.7074074074074074,
+      "val_macro_f1": 0.6955370859900016,
+      "seconds": 71.34740599399993,
+      "gradient_norms": {
+        "features.0.body.0": 1.7839460372924805,
+        "features.1.body.0": 1.807192325592041,
+        "features.2.body.0": 2.3599274158477783,
+        "classifier.1": 3.4382357597351074,
+        "classifier.3": 2.9413633346557617
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.060691073536872864,
+        "features.1.body.0": 0.013311229646205902,
+        "features.2.body.0": 0.008691268041729927,
+        "classifier.1": 0.00237441947683692,
+        "classifier.3": 0.058133795857429504
+      },
+      "gradient_ratio": 1.043989518346866,
+      "activation_std": null
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.7099641941963358,
+      "train_accuracy": 0.7368333333333333,
+      "train_macro_f1": 0.7316086056309163,
+      "val_loss": 0.7271730285137892,
+      "val_accuracy": 0.7345679012345679,
+      "val_macro_f1": 0.7313700914320798,
+      "seconds": 79.26513677200091,
+      "gradient_norms": {
+        "features.0.body.0": 1.9016586542129517,
+        "features.1.body.0": 1.6168439388275146,
+        "features.2.body.0": 1.324449896812439,
+        "classifier.1": 1.6280566453933716,
+        "classifier.3": 1.195359468460083
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.06469574570655823,
+        "features.1.body.0": 0.01190918032079935,
+        "features.2.body.0": 0.0048777516931295395,
+        "classifier.1": 0.0011243356857448816,
+        "classifier.3": 0.023625366389751434
+      },
+      "gradient_ratio": 2.7384017940404477,
+      "activation_std": null
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.6759103143468816,
+      "train_accuracy": 0.7488333333333334,
+      "train_macro_f1": 0.744253902423938,
+      "val_loss": 0.7710064947605133,
+      "val_accuracy": 0.7167901234567902,
+      "val_macro_f1": 0.700442867126634,
+      "seconds": 74.81790481399912,
+      "gradient_norms": {
+        "features.0.body.0": 0.7738322019577026,
+        "features.1.body.0": 0.9647986888885498,
+        "features.2.body.0": 1.092966914176941,
+        "classifier.1": 1.6821085214614868,
+        "classifier.3": 0.9565784335136414
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.02632630616426468,
+        "features.1.body.0": 0.007106414530426264,
+        "features.2.body.0": 0.0040252357721328735,
+        "classifier.1": 0.0011616520350798965,
+        "classifier.3": 0.018906041979789734
+      },
+      "gradient_ratio": 1.3924811016714707,
+      "activation_std": null
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.6454620142566397,
+      "train_accuracy": 0.767,
+      "train_macro_f1": 0.7629975245102569,
+      "val_loss": 1.0035963486880064,
+      "val_accuracy": 0.6333333333333333,
+      "val_macro_f1": 0.6079315600814021,
+      "seconds": 67.63789447300042,
+      "gradient_norms": {
+        "features.0.body.0": 1.6673232316970825,
+        "features.1.body.0": 1.3506652116775513,
+        "features.2.body.0": 1.1652328968048096,
+        "classifier.1": 1.8002725839614868,
+        "classifier.3": 1.3713645935058594
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.05672349035739899,
+        "features.1.body.0": 0.009948589839041233,
+        "features.2.body.0": 0.0042913807556033134,
+        "classifier.1": 0.0012432580115273595,
+        "classifier.3": 0.0271039716899395
+      },
+      "gradient_ratio": 2.09281100962977,
+      "activation_std": null
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.6232902918090212,
+      "train_accuracy": 0.7753333333333333,
+      "train_macro_f1": 0.7711875077061034,
+      "val_loss": 0.7357234572991729,
+      "val_accuracy": 0.7145679012345679,
+      "val_macro_f1": 0.7119014239139086,
+      "seconds": 82.29749224700026,
+      "gradient_norms": {
+        "features.0.body.0": 4.568861484527588,
+        "features.1.body.0": 2.3352460861206055,
+        "features.2.body.0": 2.1507182121276855,
+        "classifier.1": 3.276543617248535,
+        "classifier.3": 2.860658645629883
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.15543583035469055,
+        "features.1.body.0": 0.017200715839862823,
+        "features.2.body.0": 0.007920779287815094,
+        "classifier.1": 0.002262751804664731,
+        "classifier.3": 0.05653873085975647
+      },
+      "gradient_ratio": 2.7491920669434013,
+      "activation_std": null
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.5884417799559045,
+      "train_accuracy": 0.7858333333333334,
+      "train_macro_f1": 0.7824684931113485,
+      "val_loss": 0.831976474262774,
+      "val_accuracy": 0.6960493827160494,
+      "val_macro_f1": 0.6901110777866297,
+      "seconds": 60.3344426019994,
+      "gradient_norms": {
+        "features.0.body.0": 2.3110058307647705,
+        "features.1.body.0": 1.5515803098678589,
+        "features.2.body.0": 1.4148671627044678,
+        "classifier.1": 2.3900153636932373,
+        "classifier.3": 1.7522083520889282
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.078622005879879,
+        "features.1.body.0": 0.011428468860685825,
+        "features.2.body.0": 0.005210744217038155,
+        "classifier.1": 0.001650567282922566,
+        "classifier.3": 0.03463105857372284
+      },
+      "gradient_ratio": 2.2702744044773544,
+      "activation_std": null
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.5535094753858891,
+      "train_accuracy": 0.7963333333333333,
+      "train_macro_f1": 0.7917672429816762,
+      "val_loss": 0.8890044698491693,
+      "val_accuracy": 0.7039506172839506,
+      "val_macro_f1": 0.6919722553401881,
+      "seconds": 58.50009121200128,
+      "gradient_norms": {
+        "features.0.body.0": 2.0939037799835205,
+        "features.1.body.0": 2.648831367492676,
+        "features.2.body.0": 3.004366397857666,
+        "classifier.1": 3.6273066997528076,
+        "classifier.3": 2.3532986640930176
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.07123605906963348,
+        "features.1.body.0": 0.019510488957166672,
+        "features.2.body.0": 0.011064639315009117,
+        "classifier.1": 0.0025049885734915733,
+        "classifier.3": 0.046511150896549225
+      },
+      "gradient_ratio": 1.5315909775717602,
+      "activation_std": null
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.5448300356560565,
+      "train_accuracy": 0.808,
+      "train_macro_f1": 0.8050896994081465,
+      "val_loss": 0.8689783234149218,
+      "val_accuracy": 0.6918518518518518,
+      "val_macro_f1": 0.6818182436590137,
+      "seconds": 63.509754603001056,
+      "gradient_norms": {
+        "features.0.body.0": 2.082062244415283,
+        "features.1.body.0": 1.6234068870544434,
+        "features.2.body.0": 1.64042067527771,
+        "classifier.1": 2.499223470687866,
+        "classifier.3": 1.7435548305511475
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.07083319127559662,
+        "features.1.body.0": 0.011957523413002491,
+        "features.2.body.0": 0.006041426677256823,
+        "classifier.1": 0.001725955167785287,
+        "classifier.3": 0.034460026770830154
+      },
+      "gradient_ratio": 2.0555175927940876,
+      "activation_std": null
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.4922762831791918,
+      "train_accuracy": 0.8256666666666667,
+      "train_macro_f1": 0.8226175144053711,
+      "val_loss": 0.6982387788593769,
+      "val_accuracy": 0.7617283950617284,
+      "val_macro_f1": 0.7550993948354376,
+      "seconds": 72.68804068399913,
+      "gradient_norms": {
+        "features.0.body.0": 4.848204135894775,
+        "features.1.body.0": 2.932765483856201,
+        "features.2.body.0": 2.6268868446350098,
+        "classifier.1": 3.4476232528686523,
+        "classifier.3": 2.5143485069274902
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.16493923962116241,
+        "features.1.body.0": 0.02160186506807804,
+        "features.2.body.0": 0.0096744354814291,
+        "classifier.1": 0.0023809534031897783,
+        "classifier.3": 0.04969417303800583
+      },
+      "gradient_ratio": 3.3190861128731894,
+      "activation_std": null
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.4419608377712838,
+      "train_accuracy": 0.8445,
+      "train_macro_f1": 0.8417663768528939,
+      "val_loss": 0.7319815438240767,
+      "val_accuracy": 0.7345679012345679,
+      "val_macro_f1": 0.7246711651845478,
+      "seconds": 51.06382769300035,
+      "gradient_norms": {
+        "features.0.body.0": 0.9629831910133362,
+        "features.1.body.0": 0.9808927178382874,
+        "features.2.body.0": 0.9825623035430908,
+        "classifier.1": 1.582072377204895,
+        "classifier.3": 1.061315655708313
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.032761350274086,
+        "features.1.body.0": 0.007224956527352333,
+        "features.2.body.0": 0.003618632210418582,
+        "classifier.1": 0.00109257479198277,
+        "classifier.3": 0.020976092666387558
+      },
+      "gradient_ratio": 1.5618423695554766,
+      "activation_std": null
+    },
+    {
+      "epoch": 18,
+      "train_loss": 0.4531722362054155,
+      "train_accuracy": 0.8425,
+      "train_macro_f1": 0.839662218596341,
+      "val_loss": 0.8459889511577785,
+      "val_accuracy": 0.7204938271604938,
+      "val_macro_f1": 0.709225335214529,
+      "seconds": 50.108076192000226,
+      "gradient_norms": {
+        "features.0.body.0": 1.6075555086135864,
+        "features.1.body.0": 1.3981192111968994,
+        "features.2.body.0": 1.6587001085281372,
+        "classifier.1": 2.316545009613037,
+        "classifier.3": 1.2332078218460083
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.05469014495611191,
+        "features.1.body.0": 0.010298119857907295,
+        "features.2.body.0": 0.006108749192208052,
+        "classifier.1": 0.0015998441958799958,
+        "classifier.3": 0.024373412132263184
+      },
+      "gradient_ratio": 2.243844426021843,
+      "activation_std": null
+    },
+    {
+      "epoch": 19,
+      "train_loss": 0.3873960951224287,
+      "train_accuracy": 0.8681666666666666,
+      "train_macro_f1": 0.8646877493280964,
+      "val_loss": 0.596789472270757,
+      "val_accuracy": 0.7950617283950617,
+      "val_macro_f1": 0.7901652221618107,
+      "seconds": 50.916692351000165,
+      "gradient_norms": {
+        "features.0.body.0": 1.703959584236145,
+        "features.1.body.0": 1.9612549543380737,
+        "features.2.body.0": 2.48146915435791,
+        "classifier.1": 3.13305401802063,
+        "classifier.3": 2.279470682144165
+      },
+      "gradient_rms": {
+        "features.0.body.0": 0.05796988680958748,
+        "features.1.body.0": 0.014446010813117027,
+        "features.2.body.0": 0.009138882160186768,
+        "classifier.1": 0.0021636937744915485,
+        "classifier.3": 0.04505199193954468
+      },
+      "gradient_ratio": 1.286733045841288,
+      "activation_std": null
+    }
+  ],
+  "confusion": [
+    [
+      353,
+      0,
+      30,
+      5,
+      2,
+      11,
+      31,
+      0,
+      9,
+      9
+    ],
+    [
+      0,
+      387,
+      5,
+      1,
+      0,
+      15,
+      0,
+      0,
+      4,
+      38
+    ],
+    [
+      4,
+      3,
+      333,
+      17,
+      6,
+      16,
+      42,
+      21,
+      7,
+      1
+    ],
+    [
+      8,
+      0,
+      28,
+      246,
+      20,
+      5,
+      24,
+      16,
+      28,
+      0
+    ],
+    [
+      0,
+      0,
+      5,
+      9,
+      338,
+      0,
+      1,
+      21,
+      1,
+      0
+    ],
+    [
+      4,
+      18,
+      10,
+      7,
+      0,
+      233,
+      9,
+      0,
+      15,
+      4
+    ],
+    [
+      9,
+      0,
+      75,
+      31,
+      4,
+      13,
+      232,
+      3,
+      8,
+      0
+    ],
+    [
+      0,
+      0,
+      18,
+      7,
+      15,
+      0,
+      0,
+      410,
+      0,
+      0
+    ],
+    [
+      18,
+      5,
+      14,
+      46,
+      5,
+      9,
+      4,
+      3,
+      270,
+      1
+    ],
+    [
+      6,
+      11,
+      5,
+      0,
+      0,
+      1,
+      0,
+      0,
+      9,
+      418
+    ]
+  ]
+}
