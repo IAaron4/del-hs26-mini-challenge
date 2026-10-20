@@ -199,3 +199,92 @@ def plot_metric_vs_hyperparameter(histories: dict[str, History], key: str, xlabe
     axis.grid(alpha=0.3), axis.legend(fontsize=8)
     figure.tight_layout()
     return figure
+
+
+def smooth(values, window: int = 5) -> list[float]:
+    """Centred moving average; separates the trend from single-epoch noise."""
+    return pd.Series(values).rolling(window, center=True, min_periods=1).mean().tolist()
+
+
+def overfitting_turning_point(history: History, window: int = 5) -> int:
+    """Epoch with the lowest smoothed validation loss.
+
+    Taken from the smoothed curve because the raw validation loss of a single
+    seed has several local minima that are pure noise (Prechelt 1998).
+    """
+    return int(np.argmin(smooth(history.series("val_loss"), window)))
+
+
+def overfitting_summary(history: History, window: int = 5) -> pd.DataFrame:
+    """Zustand am Start, am Wendepunkt der Val-Kosten und am Ende des Trainings."""
+    turn = overfitting_turning_point(history, window)
+    smoothed = smooth(history.series("val_loss"), window)
+    rows = []
+    for label, epoch in [("Start", 0), ("Wendepunkt", turn), ("Ende", len(history.records) - 1)]:
+        record = history.records[epoch]
+        rows.append({
+            "Zeitpunkt": label,
+            "Epoche": epoch,
+            "Train-Kosten": record.train_loss,
+            "Val-Kosten": record.val_loss,
+            "Val-Kosten geglättet": smoothed[epoch],
+            "Train-Accuracy": record.train_accuracy,
+            "Val-Accuracy": record.val_accuracy,
+        })
+    return pd.DataFrame(rows).set_index("Zeitpunkt")
+
+
+def plot_overfitting_analysis(history: History, window: int = 5, figsize=(12, 8)):
+    """Lernkurven roh und geglättet, Wendepunkt der Val-Kosten, Gap in Kosten und Accuracy."""
+    epochs = history.series("epoch")
+    turn = overfitting_turning_point(history, window)
+    figure, axes = plt.subplots(2, 2, figsize=figsize, sharex=True)
+
+    curves = [
+        (axes[0, 0], "train_loss", "val_loss", "Kostenfunktion", "Cross-Entropy"),
+        (axes[0, 1], "train_accuracy", "val_accuracy", "Accuracy", "Accuracy"),
+    ]
+    for axis, train_key, val_key, title, ylabel in curves:
+        for key, color, label in [(train_key, "tab:blue", "Train"), (val_key, "tab:orange", "Validierung")]:
+            raw = history.series(key)
+            axis.plot(epochs, raw, color=color, alpha=0.3, linewidth=1)
+            axis.plot(epochs, smooth(raw, window), color=color, linewidth=2, label=f"{label} (geglättet)")
+        axis.set_title(title), axis.set_ylabel(ylabel)
+
+    loss_gap = [v - t for t, v in zip(history.series("train_loss"), history.series("val_loss"))]
+    accuracy_gap = [t - v for t, v in zip(history.series("train_accuracy"), history.series("val_accuracy"))]
+    gaps = [
+        (axes[1, 0], loss_gap, "Gap in der Kostenfunktion", "Val - Train"),
+        (axes[1, 1], accuracy_gap, "Gap in der Accuracy", "Train - Val"),
+    ]
+    for axis, gap, title, ylabel in gaps:
+        axis.plot(epochs, gap, color="grey", alpha=0.4, linewidth=1)
+        axis.plot(epochs, smooth(gap, window), color="black", linewidth=2, label="geglättet")
+        axis.axhline(0, color="black", linewidth=0.7)
+        axis.set_title(title), axis.set_ylabel(ylabel), axis.set_xlabel("Epoche")
+
+    for axis in axes.flat:
+        axis.axvspan(turn, epochs[-1], color="indianred", alpha=0.08)
+        axis.axvline(turn, color="indianred", linestyle="--", linewidth=1)
+        axis.grid(alpha=0.3)
+    axes[0, 0].axvspan(turn, turn, color="indianred", alpha=0.25, label="Val-Kosten steigen wieder")
+    axes[0, 0].legend(fontsize=8)
+    figure.suptitle(f"Dünn: Werte pro Epoche, dick: gleitender Mittelwert über {window} Epochen, "
+                    f"Wendepunkt in Epoche {turn}", fontsize=10)
+    figure.tight_layout()
+    return figure
+
+
+def plot_overfit_test(curves: dict[str, list[float]], figsize=(7.5, 4.5)):
+    """Kostenverlauf beim Training auf einem einzelnen Batch."""
+    figure, axis = plt.subplots(figsize=figsize)
+    for name, losses in curves.items():
+        axis.plot(range(len(losses)), losses, label=name)
+    # Expected starting loss when all 10 classes are equally likely.
+    axis.axhline(np.log(10), color="black", linestyle=":", linewidth=1, label="ln(10): Raten bei 10 Klassen")
+    axis.set_yscale("log")
+    axis.set_xlabel("Schritt"), axis.set_ylabel("Cross-Entropy (log)")
+    axis.set_title("Funktionstest auf einem einzelnen Batch")
+    axis.grid(alpha=0.3), axis.legend(fontsize=8)
+    figure.tight_layout()
+    return figure
