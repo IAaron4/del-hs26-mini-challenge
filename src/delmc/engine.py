@@ -37,10 +37,14 @@ class EpochRecord:
 
 @dataclass
 class OverfitResult:
-    """Outcome of the one-batch sanity test."""
+    """Outcome of the one-batch overfitting test."""
 
-    losses: list[float]
-    accuracy: float
+    losses: list[float] = field(default_factory=list)
+    accuracies: list[float] = field(default_factory=list)
+    accuracy: float = 0.0
+    val_steps: list[int] = field(default_factory=list)
+    val_losses: list[float] = field(default_factory=list)
+    val_accuracies: list[float] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:
@@ -186,31 +190,47 @@ class Trainer:
         self.last_confusion = metrics.confusion
         return running / len(loader), metrics.compute()
 
-    def overfit_batch(self, loader: DataLoader, steps: int = 400) -> OverfitResult:
-        """Drive a single batch to near-zero loss.
+    def overfit_batch(
+        self,
+        loader,
+        steps: int = 400,
+        val_loader: DataLoader | None = None,
+        eval_every: int = 20,
+    ) -> OverfitResult:
+        """Train on one single batch, optionally tracking validation alongside.
 
-        The correctness gate for the whole engine: if this fails, the loop, the
-        loss or the label mapping is wrong and no later result means anything.
-        Accuracy is measured on the very batch that was trained -- taking a
-        fresh batch from a shuffled loader would silently measure something else.
+        Checks the mechanics: if the batch cannot be fitted, the loop, the loss
+        or the label mapping is wrong. With `val_loader` it also shows the other
+        side, that memorising one batch does nothing for unseen data. Accuracy is
+        always measured on the very batch that was trained -- a fresh batch from a
+        shuffled loader would silently measure something else.
         """
         inputs, targets = next(iter(loader))
         inputs = inputs.to(self.device)
         targets = targets.to(self.device)
 
-        self.model.train()
-        losses = []
-        for _ in range(steps):
+        result = OverfitResult()
+        for step in range(steps):
+            self.model.train()
             self.optimizer.zero_grad(set_to_none=True)
-            loss = self.loss_fn(self.model(inputs), targets)
+            logits = self.model(inputs)
+            loss = self.loss_fn(logits, targets)
             loss.backward()
             self.optimizer.step()
-            losses.append(loss.item())
+            # Loss and accuracy of the forward pass before this step's update.
+            result.losses.append(loss.item())
+            result.accuracies.append(float((logits.detach().argmax(dim=1) == targets).float().mean()))
+
+            if val_loader is not None and (step % eval_every == 0 or step == steps - 1):
+                val_loss, val_metrics = self.evaluate(val_loader)
+                result.val_steps.append(step)
+                result.val_losses.append(val_loss)
+                result.val_accuracies.append(val_metrics.accuracy)
 
         self.model.eval()
         with torch.no_grad():
-            accuracy = float((self.model(inputs).argmax(dim=1) == targets).float().mean())
-        return OverfitResult(losses=losses, accuracy=accuracy)
+            result.accuracy = float((self.model(inputs).argmax(dim=1) == targets).float().mean())
+        return result
 
     def activation_stats(self, loader: DataLoader) -> dict[str, float]:
         """Per-layer activation std on one batch."""

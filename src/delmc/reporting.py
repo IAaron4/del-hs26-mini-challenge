@@ -275,16 +275,25 @@ def plot_overfitting_analysis(history: History, window: int = 5, figsize=(12, 8)
     return figure
 
 
-def plot_overfit_test(curves: dict[str, list[float]], figsize=(7.5, 4.5)):
-    """Kostenverlauf beim Training auf einem einzelnen Batch."""
-    figure, axis = plt.subplots(figsize=figsize)
-    for name, losses in curves.items():
-        axis.plot(range(len(losses)), losses, label=name)
-    # Expected starting loss when all 10 classes are equally likely.
-    axis.axhline(np.log(10), color="black", linestyle=":", linewidth=1, label="ln(10): Raten bei 10 Klassen")
-    axis.set_yscale("log")
-    axis.set_xlabel("Schritt"), axis.set_ylabel("Cross-Entropy (log)")
-    axis.set_title("Funktionstest auf einem einzelnen Batch")
-    axis.grid(alpha=0.3), axis.legend(fontsize=8)
+def plot_overfit_test(result, figsize=(12, 4.5)):
+    """Overfitting-Test: Kurven auf dem trainierten Batch und auf der Validierung."""
+    steps = range(len(result.losses))
+    figure, (cost_axis, accuracy_axis) = plt.subplots(1, 2, figsize=figsize)
+
+    cost_axis.plot(steps, result.losses, label="Batch")
+    accuracy_axis.plot(steps, result.accuracies, label="Batch")
+    if result.val_steps:
+        cost_axis.plot(result.val_steps, result.val_losses, "o-", markersize=3, label="Validierung")
+        accuracy_axis.plot(result.val_steps, result.val_accuracies, "o-", markersize=3, label="Validierung")
+
+    # Reference levels of a model that guesses uniformly among the 10 classes.
+    cost_axis.axhline(np.log(10), color="black", linestyle=":", linewidth=1, label="Raten (ln 10)")
+    accuracy_axis.axhline(0.1, color="black", linestyle=":", linewidth=1, label="Raten (0.1)")
+
+    cost_axis.set_yscale("log")
+    cost_axis.set_title("Kostenfunktion"), cost_axis.set_ylabel("Cross-Entropy (log)")
+    accuracy_axis.set_title("Accuracy"), accuracy_axis.set_ylabel("Accuracy"), accuracy_axis.set_ylim(0, 1.05)
+    for axis in (cost_axis, accuracy_axis):
+        axis.set_xlabel("Schritt"), axis.grid(alpha=0.3), axis.legend(fontsize=8)
     figure.tight_layout()
     return figure
