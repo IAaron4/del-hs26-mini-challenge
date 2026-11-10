@@ -10,3 +10,12 @@ __pycache__/
 
 .venv/
 .DS_Store
+
+# Logs and working files of long runs, kept outside /tmp so a WSL restart does not lose them.
+logs/
+.work/
+
+# Weights of the experiment runs are large; the notebook draws from the JSON histories.
+# Only the two final models are kept, the test evaluation in section 13 loads them.
+results/**/*.pt
+!results/final/*.pt

@@ -10,6 +10,7 @@ from typing import Callable, Iterable
 
 import torch
 
+from .data import AUGMENTATIONS
 from .engine import History, Trainer
 from .models import CNNConfig, ConfigurableCNN
 from .utils import seed_everything
@@ -18,9 +19,33 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 RESULTS_ROOT = REPO_ROOT / "results"
 
 
+def build_optimizer(name: str, parameters, lr: float, momentum: float = 0.0, weight_decay: float = 0.0):
+    parameters = [p for p in parameters if p.requires_grad]
+    if name == "sgd":
+        return torch.optim.SGD(parameters, lr=lr, momentum=momentum, weight_decay=weight_decay)
+    if name == "adam":
+        return torch.optim.Adam(parameters, lr=lr, weight_decay=weight_decay)
+    raise ValueError(f"unknown optimizer {name!r}")
+
+
+class CacheKey:
+    """Hash of a run config, for frozen dataclasses with `name` and `group` fields."""
+
+    def identity(self) -> dict:
+        """All fields except `name` and `group`, which are only labels."""
+        payload = asdict(self)
+        payload.pop("name")
+        payload.pop("group")
+        return payload
+
+    def key(self) -> str:
+        blob = json.dumps(self.identity(), sort_keys=True, default=str)
+        return hashlib.sha256(blob.encode()).hexdigest()[:12]
+
+
 @dataclass(frozen=True)
-class ExperimentConfig:
-    """One training run, specified completely enough to be cached by identity."""
+class ExperimentConfig(CacheKey):
+    """Everything that defines one training run of the own CNN."""
 
     name: str
     group: str
@@ -36,17 +61,6 @@ class ExperimentConfig:
     train_subset: int | None = 6000
     probe: bool = False
 
-    def identity(self) -> dict:
-        """Everything that changes the outcome. `name` and `group` are labels only."""
-        payload = asdict(self)
-        payload.pop("name")
-        payload.pop("group")
-        return payload
-
-    def key(self) -> str:
-        blob = json.dumps(self.identity(), sort_keys=True, default=str)
-        return hashlib.sha256(blob.encode()).hexdigest()[:12]
-
     def with_(self, **changes) -> "ExperimentConfig":
         return replace(self, **changes)
 
@@ -54,18 +68,11 @@ class ExperimentConfig:
         return ConfigurableCNN(self.cnn)
 
     def build_optimizer(self, model: torch.nn.Module) -> torch.optim.Optimizer:
-        parameters = [p for p in model.parameters() if p.requires_grad]
-        if self.optimizer == "sgd":
-            return torch.optim.SGD(parameters, lr=self.lr, momentum=self.momentum, weight_decay=self.weight_decay)
-        if self.optimizer == "adam":
-            return torch.optim.Adam(parameters, lr=self.lr, weight_decay=self.weight_decay)
-        if self.optimizer == "adamw":
-            return torch.optim.AdamW(parameters, lr=self.lr, weight_decay=self.weight_decay)
-        raise ValueError(f"unknown optimizer {self.optimizer!r}")
+        return build_optimizer(self.optimizer, model.parameters(), self.lr, self.momentum, self.weight_decay)
 
 
 class ResultCache:
-    """Stores run histories on disk so a repeated configuration never retrains."""
+    """Run histories as JSON under results/<group>/<name>-<key>.json."""
 
     def __init__(self, root: Path | str = RESULTS_ROOT) -> None:
         self.root = Path(root)
@@ -89,7 +96,7 @@ class ResultCache:
 
 
 class ExperimentRunner:
-    """Runs an ExperimentConfig, or returns the cached result unchanged."""
+    """Trains an ExperimentConfig, or loads the result if it is already in the cache."""
 
     def __init__(
         self,
@@ -103,7 +110,7 @@ class ExperimentRunner:
         self.device = device
         self.cache = cache or ResultCache()
         self.tracker_factory = tracker_factory
-        self.augmentations = augmentations or {}
+        self.augmentations = augmentations or AUGMENTATIONS
 
     def run(self, config: ExperimentConfig, force: bool = False, verbose: bool = True) -> History:
         if not force:
@@ -113,8 +120,7 @@ class ExperimentRunner:
                     print(f"cached  {config.group}/{config.name}")
                 return cached
 
-        # The subset is a property of the data module, but it is part of the
-        # cache key -- a mismatch would file results under the wrong identity.
+        # The subset is set on the data module but is part of the cache key, so both have to agree.
         actual = getattr(self.data_module, "train_subset", None)
         if actual != config.train_subset:
             raise ValueError(
@@ -144,8 +150,11 @@ class ExperimentRunner:
             config={**config.identity(), "name": config.name, "group": config.group,
                     "params": sum(p.numel() for p in model.parameters())},
         )
+        history.final_train = trainer.final_train_metrics(
+            self.data_module.train_eval_loader(batch_size=max(config.batch_size, 256))
+        )
         self.cache.put(config, history)
-        # Keep the trained weights so per-class analysis does not need a retrain.
+        # The weights are kept so the test evaluation does not need a retrain.
         checkpoint = self.cache.path(config).with_suffix(".pt")
         torch.save(model.state_dict(), checkpoint)
         if verbose:

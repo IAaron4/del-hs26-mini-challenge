@@ -1,35 +1,25 @@
-"""Per-layer gradient and activation instrumentation.
-
-The vanishing-gradient hypotheses stand or fall on these numbers, so they are
-measured rather than asserted.
-"""
+"""Per-layer gradients and activations, for the depth and initialisation hypotheses."""
 
 from __future__ import annotations
 
-import torch
 from torch import nn
 
 WEIGHTED = (nn.Conv2d, nn.Linear)
 
 
 def weighted_layers(model: nn.Module) -> list[tuple[str, nn.Module]]:
-    """Conv and linear layers in forward order, which is the order they are declared."""
+    """Conv and linear layers in the order they are declared, which is the forward order here."""
     return [(name, module) for name, module in model.named_modules() if isinstance(module, WEIGHTED)]
 
 
 class GradientFlowProbe:
-    """Gradient norm of every weight tensor, layer by layer.
-
-    Reads `.grad` directly instead of registering backward hooks: after
-    `loss.backward()` the gradients are already there, and avoiding hooks keeps
-    the training loop free of side effects.
-    """
+    """Reads the weight gradients layer by layer. Call between backward() and step()."""
 
     def __init__(self, model: nn.Module) -> None:
         self.layers = weighted_layers(model)
 
     def snapshot(self) -> dict[str, float]:
-        """Current gradient norms. Call between backward() and step()."""
+        """Gradient norm per layer."""
         return {
             name: float(module.weight.grad.detach().norm())
             for name, module in self.layers
@@ -37,11 +27,10 @@ class GradientFlowProbe:
         }
 
     def snapshot_rms(self) -> dict[str, float]:
-        """Root-mean-square gradient per weight element.
+        """Root mean square of the gradient per layer.
 
-        The raw norm grows with the number of elements in W, so comparing norms
-        across layers of different width conflates gradient magnitude with
-        parameter count. RMS divides that out and is the honest depth diagnostic.
+        The norm grows with the number of weights, the RMS does not, so layers of
+        different size can be compared.
         """
         return {
             name: float(module.weight.grad.detach().pow(2).mean().sqrt())
@@ -51,11 +40,7 @@ class GradientFlowProbe:
 
     @staticmethod
     def ratio(snapshot: dict[str, float]) -> float:
-        """First-layer over last-layer gradient norm.
-
-        The headline diagnostic: it decays by orders of magnitude exactly when
-        the Jacobian product collapses. Feed it RMS values, not raw norms.
-        """
+        """First layer divided by last layer."""
         if len(snapshot) < 2:
             return float("nan")
         values = list(snapshot.values())
@@ -64,7 +49,7 @@ class GradientFlowProbe:
 
 
 class ActivationStatsProbe:
-    """Mean and std of each layer's output, the forward twin of gradient decay."""
+    """Mean and std of the output of every conv and linear layer, via forward hooks."""
 
     def __init__(self, model: nn.Module) -> None:
         self._stats: dict[str, tuple[float, float]] = {}
@@ -92,27 +77,3 @@ class ActivationStatsProbe:
 
     def __exit__(self, *_exc) -> None:
         self.close()
-
-
-@torch.no_grad()
-def update_to_weight_ratio(model: nn.Module, previous: dict[str, torch.Tensor]) -> dict[str, float]:
-    """Relative parameter change since `previous`, per layer.
-
-    Karpathy's rule of thumb puts a healthy value near 1e-3; far below means the
-    layer is barely learning.
-    """
-    ratios = {}
-    for name, module in weighted_layers(model):
-        if name not in previous:
-            continue
-        weight = module.weight.detach()
-        norm = weight.norm()
-        if norm > 0:
-            ratios[name] = float((weight - previous[name]).norm() / norm)
-    return ratios
-
-
-@torch.no_grad()
-def weight_snapshot(model: nn.Module) -> dict[str, torch.Tensor]:
-    """Copy of current weights, for a later update_to_weight_ratio call."""
-    return {name: module.weight.detach().clone() for name, module in weighted_layers(model)}

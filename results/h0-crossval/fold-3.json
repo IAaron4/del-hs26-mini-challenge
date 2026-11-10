@@ -1,6 +1,11 @@
 {
   "config": {
-    "fold": 3
+    "fold": 3,
+    "lr": 0.03,
+    "batch_size": 64,
+    "epochs": 20,
+    "train_subset": 6000,
+    "seed": 42
   },
   "records": [
     {

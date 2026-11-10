@@ -20,11 +20,29 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 NORM_CACHE = REPO_ROOT / "results" / "normalization.json"
 
 
-class TransformedSubset(Dataset):
-    """A view on the shared dataset that applies its own transform.
+class RandomRot90(torch.nn.Module):
+    """Rotation by a random multiple of 90 degrees; on square images no corners are left empty."""
 
-    The base EuroSAT instance is scanned once and yields PIL images; keeping it
-    shared avoids re-listing 27k files for every loader that gets built.
+    def forward(self, image):
+        k = int(torch.randint(4, (1,)))
+        if isinstance(image, torch.Tensor):
+            return torch.rot90(image, k, dims=(-2, -1))
+        return image.rotate(90 * k) if k else image
+
+
+# Configs refer to augmentations by name, so they stay hashable.
+AUGMENTATIONS = {
+    "hflip": v2.RandomHorizontalFlip(),
+    "vflip": v2.RandomVerticalFlip(),
+    "rot90": RandomRot90(),
+    "color": v2.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+}
+
+
+class TransformedSubset(Dataset):
+    """Indices into the shared EuroSAT dataset with their own transform.
+
+    The dataset is only loaded once, every loader reuses it.
     """
 
     def __init__(self, base, indices, transform) -> None:
@@ -53,10 +71,9 @@ class Split:
 
 
 class EuroSATDataModule:
-    """Owns the dataset, its stratified split and the loaders built from it.
+    """Dataset, stratified split and loaders.
 
-    Normalization statistics are computed from the training split alone, so no
-    information from validation or test leaks into the inputs.
+    Mean and std for the normalisation come from the training split only.
     """
 
     def __init__(
@@ -81,10 +98,8 @@ class EuroSATDataModule:
         self._split: Split | None = None
         self._stats: tuple[tuple[float, ...], tuple[float, ...]] | None = None
 
-    # -- setup ---------------------------------------------------------------
-
     def prepare(self) -> "EuroSATDataModule":
-        """Download if needed, build the split, and resolve normalization stats."""
+        """Downloads the data if needed, builds the split and loads or computes the normalisation."""
         self.root.mkdir(parents=True, exist_ok=True)
         self._raw = datasets.EuroSAT(root=str(self.root), download=True)
         self._split = self._build_split()
@@ -102,7 +117,7 @@ class EuroSATDataModule:
             stratify=targets,
             random_state=self.seed,
         )
-        # Re-normalise so val/test keep their intended ratio within the holdout.
+        # Share of validation within the holdout, so val and test end up at 15 % each.
         val_share = val_frac / (val_frac + test_frac)
         val_idx, test_idx = train_test_split(
             holdout_idx,
@@ -134,7 +149,7 @@ class EuroSATDataModule:
         return mean, std
 
     def _stats_key(self) -> str:
-        """Identifies the exact training split the statistics belong to."""
+        """Identifies the training split the cached statistics belong to."""
         return f"seed={self.seed};fractions={self.fractions};subset={self.train_subset}"
 
     def _compute_stats(self):
@@ -155,8 +170,6 @@ class EuroSATDataModule:
         std = (channel_sq / total - mean**2).clamp_min(0).sqrt()
         return tuple(mean.tolist()), tuple(std.tolist())
 
-    # -- transforms ----------------------------------------------------------
-
     @property
     def normalization(self):
         self._require_prepared()
@@ -169,16 +182,18 @@ class EuroSATDataModule:
         )
 
     def train_transform(self, augment: list | None = None):
-        """Augmentation runs on the raw image, before tensor conversion."""
+        """Augmentation runs on the PIL image, before the conversion to a tensor."""
         mean, std = self.normalization
         steps = list(augment or [])
         steps += [v2.ToImage(), v2.ToDtype(torch.float32, scale=True), v2.Normalize(mean=list(mean), std=list(std))]
         return v2.Compose(steps)
 
-    # -- loaders -------------------------------------------------------------
-
     def train_loader(self, augment: list | None = None, batch_size: int | None = None) -> DataLoader:
         return self._loader(self._split.train, self.train_transform(augment), shuffle=True, batch_size=batch_size)
+
+    def train_eval_loader(self, batch_size: int | None = None) -> DataLoader:
+        """Training images without augmentation, for the train metrics after training."""
+        return self._loader(self._split.train, self.eval_transform(), shuffle=False, batch_size=batch_size)
 
     def val_loader(self, batch_size: int | None = None) -> DataLoader:
         return self._loader(self._split.val, self.eval_transform(), shuffle=False, batch_size=batch_size)
@@ -187,7 +202,7 @@ class EuroSATDataModule:
         return self._loader(self._split.test, self.eval_transform(), shuffle=False, batch_size=batch_size)
 
     def subset_loader(self, indices, transform=None, shuffle: bool = True, batch_size: int | None = None) -> DataLoader:
-        """Loader over arbitrary indices; cross-validation builds its folds with this."""
+        """Loader over any indices, used for the folds of the cross-validation."""
         return self._loader(np.asarray(indices), transform or self.eval_transform(), shuffle, batch_size)
 
     def _loader(self, indices, transform, shuffle: bool, batch_size: int | None) -> DataLoader:
@@ -201,8 +216,6 @@ class EuroSATDataModule:
             pin_memory=bool(available_backends()),
             persistent_workers=self.num_workers > 0,
         )
-
-    # -- description ---------------------------------------------------------
 
     @property
     def split(self) -> Split:

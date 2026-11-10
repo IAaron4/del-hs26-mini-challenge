@@ -7,12 +7,13 @@ dependencies:
   - python=3.13
   - pip
   - pip:
-      - torch
-      - torchvision
-      - wandb
-      - scikit-learn
-      - pandas
-      - matplotlib
-      - torchinfo
-      - jupyterlab
-      - ipykernel
+      - torch==2.14.0
+      - torchvision==0.29.0
+      - numpy==2.5.2
+      - scikit-learn==1.9.1
+      - pandas==3.0.5
+      - matplotlib==3.11.2
+      - wandb==0.30.0
+      - torchinfo==1.8.0
+      - jupyterlab==4.6.3
+      - ipykernel==7.3.0

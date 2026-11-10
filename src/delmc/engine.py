@@ -13,8 +13,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from .metrics import MetricSet
-from .probes import ActivationStatsProbe, GradientFlowProbe
-from .tracking import NullTracker
+from .probes import GradientFlowProbe
 
 
 @dataclass
@@ -46,18 +45,15 @@ class OverfitResult:
     val_losses: list[float] = field(default_factory=list)
     val_accuracies: list[float] = field(default_factory=list)
 
-    @property
-    def passed(self) -> bool:
-        return self.accuracy >= 0.99
-
 
 @dataclass
 class History:
-    """Everything a run produced, serialisable so plots never need a retrain."""
+    """Everything a run produced; saved as JSON so the plots can be drawn without retraining."""
 
     config: dict[str, Any] = field(default_factory=dict)
     records: list[EpochRecord] = field(default_factory=list)
     confusion: list[list[int]] | None = None
+    final_train: dict[str, float] | None = None
 
     def append(self, record: EpochRecord) -> None:
         self.records.append(record)
@@ -73,6 +69,7 @@ class History:
             "config": self.config,
             "records": [asdict(record) for record in self.records],
             "confusion": self.confusion,
+            "final_train": self.final_train,
         }
 
     def save(self, path: str | Path) -> Path:
@@ -88,14 +85,14 @@ class History:
             config=payload["config"],
             records=[EpochRecord(**record) for record in payload["records"]],
             confusion=payload.get("confusion"),
+            final_train=payload.get("final_train"),
         )
 
 
 class Trainer:
-    """Trains one model and reports per-epoch metrics.
+    """Trains one model and records train and validation metrics per epoch.
 
-    Deliberately takes the epoch count as an argument and keeps the loss
-    function on the instance, so neither can be shadowed by a running total.
+    `tracker` is optional; anything with a `log(dict)` method works.
     """
 
     def __init__(
@@ -113,8 +110,7 @@ class Trainer:
         self.device = device
         self.num_classes = num_classes
         self.loss_fn = (loss_fn or nn.CrossEntropyLoss()).to(device)
-        self.tracker = tracker or NullTracker()
-        self.probe = probe
+        self.tracker = tracker
         self._gradient_probe = GradientFlowProbe(self.model) if probe else None
         self.last_confusion = None
 
@@ -140,7 +136,8 @@ class Trainer:
                 gradient_ratio=GradientFlowProbe.ratio(gradient_rms) if gradient_rms else None,
             )
             history.append(record)
-            self.tracker.log({"Epoch": epoch, **{k: v for k, v in asdict(record).items() if isinstance(v, (int, float))}})
+            if self.tracker is not None:
+                self.tracker.log({k: v for k, v in asdict(record).items() if isinstance(v, (int, float))})
 
         if self.last_confusion is not None:
             history.confusion = self.last_confusion.tolist()
@@ -162,7 +159,7 @@ class Trainer:
             loss = self.loss_fn(logits, targets)
             loss.backward()
 
-            # Sample gradients once per epoch; every step would dominate runtime.
+            # Gradients only on the first batch of each epoch, every batch would be too slow.
             if self._gradient_probe is not None and step == 0:
                 gradients = self._gradient_probe.snapshot()
                 gradient_rms = self._gradient_probe.snapshot_rms()
@@ -190,6 +187,15 @@ class Trainer:
         self.last_confusion = metrics.confusion
         return running / len(loader), metrics.compute()
 
+    def final_train_metrics(self, loader: DataLoader) -> dict[str, float]:
+        """Train loss and accuracy after training, in eval mode and without augmentation.
+
+        The values recorded during an epoch include dropout, BatchNorm batch statistics
+        and augmented images, so they are not comparable between those variants.
+        """
+        loss, metrics = self.evaluate(loader)
+        return {"loss": loss, "accuracy": metrics.accuracy, "macro_f1": metrics.macro_f1}
+
     def overfit_batch(
         self,
         loader,
@@ -197,13 +203,10 @@ class Trainer:
         val_loader: DataLoader | None = None,
         eval_every: int = 20,
     ) -> OverfitResult:
-        """Train on one single batch, optionally tracking validation alongside.
+        """Trains repeatedly on the first batch of `loader`, optionally evaluating on `val_loader`.
 
-        Checks the mechanics: if the batch cannot be fitted, the loop, the loss
-        or the label mapping is wrong. With `val_loader` it also shows the other
-        side, that memorising one batch does nothing for unseen data. Accuracy is
-        always measured on the very batch that was trained -- a fresh batch from a
-        shuffled loader would silently measure something else.
+        If this one batch cannot be learned, something in the loop, the loss or the
+        labels is wrong. Accuracy is measured on the same batch that is trained on.
         """
         inputs, targets = next(iter(loader))
         inputs = inputs.to(self.device)
@@ -231,11 +234,3 @@ class Trainer:
         with torch.no_grad():
             result.accuracy = float((self.model(inputs).argmax(dim=1) == targets).float().mean())
         return result
-
-    def activation_stats(self, loader: DataLoader) -> dict[str, float]:
-        """Per-layer activation std on one batch."""
-        inputs, _ = next(iter(loader))
-        self.model.eval()
-        with ActivationStatsProbe(self.model) as probe, torch.no_grad():
-            self.model(inputs.to(self.device))
-            return {name: std for name, (_mean, std) in probe.snapshot().items()}
