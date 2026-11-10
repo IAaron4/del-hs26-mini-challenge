@@ -8813,9 +8813,8 @@ die geglätteten Val-Kosten wieder steigen.</p>
 Validierung bleibt dagegen bei knapp 0.8 hängen.</p>
 <p>Die rohen Validierungs-Kurven springen von Epoche zu Epoche ziemlich stark, bei den Kosten gibt es
 mehrere einzelne Ausreisser nach oben. Wenn ich das Minimum direkt aus den rohen Werten ablese, liegen
-mehrere Epochen fast gleich tief, und welche davon gewinnt, ist Zufall. Deshalb lese ich den Verlauf
-an den geglätteten Kurven ab. Prechelt (1998) beschreibt dieses Problem: echte Validierungs-Kurven
-haben mehrere lokale Minima, und ein Kriterium auf Einzelwerten ist unzuverlässig.</p>
+mehrere Epochen fast gleich tief, und welche davon gewinnt, ist Zufall. Deshalb lese ich den Verlauf an
+den geglätteten Kurven ab.</p>
 <p>Im geglätteten Verlauf sehe ich drei Abschnitte.</p>
 <p>Bis etwa Epoche 9 liegen Train und Validierung praktisch aufeinander, der Gap schwankt um null. Das
 Modell lernt Dinge, die auf beiden Splits gleich gut funktionieren.</p>
@@ -8829,9 +8828,8 @@ also auf den Trainingsdaten besser und auf der Validierung schlechter, und ab hi
 Overfitting.</p>
 <p>Die Val-Kosten steigen dabei, obwohl die Accuracy nicht fällt. Meine Erklärung ist, dass das Modell bei
 den Bildern, die es falsch klassifiziert, immer sicherer wird. Die Cross-Entropy bestraft eine sichere
-falsche Vorhersage stark, für die Accuracy ist falsch einfach falsch. Guo et al. (2017) beschreiben
-denselben Effekt bei grösseren Netzen. Um das zu prüfen, müsste ich die Konfidenz der falschen
-Vorhersagen über die Epochen verfolgen. Das habe ich nicht gemacht.</p>
+falsche Vorhersage stark, für die Accuracy ist falsch einfach falsch. Um das zu prüfen, müsste ich die
+Konfidenz der falschen Vorhersagen über die Epochen verfolgen. Das habe ich nicht gemacht.</p>
 <p>Für Early Stopping würde ich mich deshalb an den Val-Kosten orientieren. Und die Lücke zwischen Train
 und Validierung ist das, was die Regularisierung später verkleinern soll.</p>
 <h2 id="6.-Tuning-von-Lernrate-und-Batchsize">6. Tuning von Lernrate und Batchsize<a class="anchor-link" href="#6.-Tuning-von-Lernrate-und-Batchsize">¶</a></h2><p>Manuelles log-Gitter, kein automatisches Suchverfahren.</p>
@@ -9180,10 +9178,10 @@ Trainings-Accuracy, die bei den grossen Batches selbst noch tief bleibt. In den 
 die Trainingskosten mit Batchsize 256 nach 20 Epochen erst etwa so tief wie mit 32 nach fünf Epochen.
 Der kleinere Gap kommt also eher daher, dass die grossen Batches selbst die Trainingsdaten noch nicht
 gelernt haben.</p>
-<p>Sauber verglichen müsste die Lernrate mit der Batchsize mitskalieren, so wie es die lineare
-Skalierungsregel von Goyal et al. (2017) vorschlägt. Mein Experiment vermischt Batchsize und effektive
-Schrittzahl. Belegen kann ich damit nur, dass bei dieser fixen Lernrate die kleineren Batches besser
-abschneiden. Mit mehr Rechenzeit würde ich das nachholen.</p>
+<p>Sauber verglichen müsste die Lernrate mit der Batchsize mitwachsen, damit das Modell pro Epoche ähnlich
+weit kommt. Mein Experiment vermischt Batchsize und effektive Schrittzahl. Belegen kann ich damit nur,
+dass bei dieser fixen Lernrate die kleineren Batches besser abschneiden. Mit mehr Rechenzeit würde ich
+das nachholen.</p>
 <p>Zur Rechenzeit noch: Die Zeit pro Epoche schwankt bei mir je nach Auslastung des Rechners stark, beim
 Lauf mit Batchsize 64 zwischen 50 und 82 Sekunden. In den Tabellen steht deshalb der Mittelwert über
 alle Epochen. Von 32 auf 64 wird eine Epoche nur etwas schneller, mit 128 ist sie dann etwa dreimal so
@@ -9860,15 +9858,15 @@ verschoben:</p>
 <p>$$\hat{x} = \frac{x - \mu_c}{\sqrt{\sigma_c^2 + \epsilon}}, \qquad y = \gamma_c \, \hat{x} + \beta_c$$</p>
 <p>Beim Training kommen $\mu_c$ und $\sigma_c^2$ aus dem aktuellen Batch, bei der Evaluation aus einem
 laufenden Mittel über das Training (Input <code>05_batchnorm</code>).</p>
-<p>Ioffe und Szegedy (2015) haben BatchNorm mit dem Internal Covariate Shift begründet, also damit, dass
-sich die Verteilung der Eingänge jedes Layers beim Training ständig verschiebt. Santurkar et al.
-(2018) halten das für keine gute Erklärung. Nach ihnen liegt der Nutzen eher daran, dass die
-Kostenfläche glatter wird: die Gradienten ändern sich bei einem Schritt weniger abrupt, also sollte
-das Training grössere Lernraten vertragen. Im Input <code>05_batchnorm</code> hat das CNN auf FashionMNIST mit
-BatchNorm schneller gelernt und war am Ende etwas besser. Das Netz von Ioffe und Szegedy vertrug laut
-den Folien eine um ein Vielfaches höhere Lernrate. In 6.1 ist das Modell bei Lernrate 0.1 nach seinem
-besten Wert merklich zurückgefallen, und die Kurve ist dort stark gesprungen. Wenn Santurkar et al.
-recht haben, müsste BatchNorm das verbessern.</p>
+<p>Ursprünglich wurde BatchNorm mit dem Internal Covariate Shift begründet, also damit, dass sich die
+Verteilung der Eingänge jedes Layers beim Training ständig verschiebt. Im Input <code>05_batchnorm</code> heisst
+es aber, dass diese Erklärung umstritten ist. Eher mache BatchNorm die Kostenfläche glatter, die
+Gradienten ändern sich also weniger schnell, und das Training wird robuster. Dann sollte es auch
+grössere Lernraten vertragen. Im ursprünglichen Paper waren laut Folie 5- bis 30-mal grössere Lernraten
+möglich, und das CNN auf FashionMNIST hat mit BatchNorm schneller gelernt und war am Ende etwas besser.
+In 6.1 ist das Modell bei Lernrate 0.1 nach seinem besten Wert merklich zurückgefallen, und die Kurve
+ist dort stark gesprungen. Wenn die Erklärung mit der glatteren Kostenfläche stimmt, müsste BatchNorm
+das verbessern.</p>
 <p>Den Rückfall nach dem besten Wert nehme ich bei 0.1 bewusst nicht als Mass, weil er auch vom
 Overfitting kommen kann. Ein Sprung von einer Epoche zur nächsten kommt eher von zu grossen Schritten.</p>
 <p>Weil jeder Batch etwas andere Statistiken hat, bringt BatchNorm Rauschen ins Training und regularisiert
@@ -10158,7 +10156,7 @@ mehr. Vielleicht liegt das daran, dass BatchNorm bei der Evaluation laufende Mit
 (Input <code>05_batchnorm</code>), die bei grossen Schritten hinter den Gewichten herhinken. Geprüft habe ich das
 nicht. Auch D bricht bei Epoche 24 einmal ein, erholt sich aber in der nächsten Epoche wieder. Mit je
 einem Lauf kann ich nur festhalten, dass das Training mit BatchNorm bei 0.1 bis zum Schluss gelaufen
-ist und ohne nicht. Das würde man nach Santurkar et al. auch erwarten. Gemessen hatte ich aber das
+ist und ohne nicht. Das passt zur Erklärung mit der glatteren Kostenfläche. Gemessen hatte ich aber das
 Springen der Kurve, und dort zeigt sich kein klarer Unterschied.</p>
 <p>Punkt 3 ist widerlegt, und zwar beim Gap. Er ist mit BatchNorm bei allen drei Seeds kleiner als bei
 allen drei ohne. Beim Minimum der Val-Kosten überlappen sich die Läufe, dieser Teil ist nicht
@@ -10192,23 +10190,19 @@ zusätzlich eine laufende Summe der vergangenen Gradienten mit und geht in deren
 <p>$$v \leftarrow \beta \, v + g, \qquad \theta \leftarrow \theta - \eta \, v$$</p>
 <p>Zeigt der Gradient immer in dieselbe Richtung, wächst $v$ bei $\beta = 0.9$ bis auf das Zehnfache von
 $g$ an. Wechselt er das Vorzeichen, wie beim Hin-und-her-Springen in einem schmalen Tal, heben sich die
-Beiträge teilweise auf. Sutskever et al. (2013) beschreiben die Wirkung von Momentum ähnlich, es
-sammelt Geschwindigkeit in Richtungen, in die der Gradient über viele Schritte gleich zeigt. Das sollte
-das Sägezahnmuster aus dem Overfitting-Test (5.2) dämpfen. Wenn die Schritte bis zu zehnmal grösser
-werden, muss die Lernrate ungefähr um diesen Faktor kleiner sein, damit das Training gleich stabil
-bleibt. Eine kleinere Lernrate empfehlen auch die Folien in Input <code>06_optimizers</code>, und im Beispiel mit
-FashionMNIST lief Momentum dort mit einer achtmal kleineren Lernrate als reines SGD. Den Wert 0.9 für
-Momentum habe ich aus diesem Beispiel übernommen.</p>
+Beiträge teilweise auf. Das sollte das Sägezahnmuster aus dem Overfitting-Test (5.2) dämpfen. Wenn die
+Schritte bis zu zehnmal grösser werden, muss die Lernrate ungefähr um diesen Faktor kleiner sein, damit
+das Training gleich stabil bleibt. Eine kleinere Lernrate empfehlen auch die Folien in Input
+<code>06_optimizers</code>, und im Beispiel mit FashionMNIST lief Momentum dort mit einer achtmal kleineren
+Lernrate als reines SGD. Den Wert 0.9 für Momentum habe ich aus diesem Beispiel übernommen.</p>
 <p>Adam teilt ein laufendes Mittel der Gradienten durch die Wurzel eines laufenden Mittels ihrer
 Quadrate:</p>
 <p>$$\theta \leftarrow \theta - \eta \, \frac{\hat{m}}{\sqrt{\hat{v}} + \epsilon}$$</p>
-<p>Das Dach steht für eine Korrektur, weil beide Mittel bei null starten. Jeder Parameter bekommt so
-seine eigene Schrittweite, und ein Schritt ist ungefähr so gross wie die Lernrate, egal wie gross der
-Gradient ist (Kingma und Ba 2015; Input <code>06_optimizers</code>). Wilson et al. (2017) finden, dass solche
-adaptiven Verfahren oft schneller konvergieren, aber nicht besser generalisieren als gut eingestelltes
-SGD. Auf der Folie zum Beispiel mit FashionMNIST steht dazu, dass Adam Train- und Test-Accuracy am
-schnellsten steigert, aber nicht unbedingt zu Lösungen führt, die besser generalisieren. Darauf und
-auf Wilson et al. stütze ich Punkt 3.</p>
+<p>Das Dach steht für eine Korrektur, weil beide Mittel bei null starten. Jeder Parameter bekommt so seine
+eigene Schrittweite, und ein Schritt ist ungefähr so gross wie die Lernrate, egal wie gross der
+Gradient ist (Input <code>06_optimizers</code>). Auf der Folie zum Beispiel mit FashionMNIST steht dazu, dass Adam
+Train- und Test-Accuracy am schnellsten steigert, aber nicht unbedingt zu Lösungen führt, die besser
+generalisieren. Darauf stütze ich Punkt 3.</p>
 <h4 id="Experiment">Experiment<a class="anchor-link" href="#Experiment">¶</a></h4><p>Zuerst suche ich für jedes Verfahren die beste Lernrate mit einem Seed, ausgewählt nach der besten
 Val-Accuracy. Bei Adam ändere ich nur die Lernrate, der Rest bleibt bei den Voreinstellungen von
 PyTorch.</p>
@@ -10517,17 +10511,18 @@ erreichen im Mittel kaum mehr als der Suchlauf mit 0.003. Meine Überlegung mit 
 trotzdem zu einfach. Den bekommt Momentum nur, wenn der Gradient lange in dieselbe Richtung zeigt.
 Springt er hin und her, ist die Verstärkung kleiner, und die Lernrate muss weniger stark sinken.</p>
 <p>Punkt 3 ist widerlegt. Alle drei Adam-Läufe liegen bei der besten Val-Accuracy über allen drei
-Momentum-Läufen. Der Unterschied ist klein, gut ein Prozentpunkt, aber die Läufe überlappen nicht.
-Wilson et al. (2017) vergleichen allerdings mit SGD, dessen Lernrate im Lauf des Trainings gesenkt
-wird, und trainieren deutlich länger. Bei mir bleiben alle Lernraten konstant, und ich habe pro
-Verfahren nur vier Werte ausprobiert. Ich würde daraus deshalb nicht schliessen, dass Adam allgemein
-besser generalisiert, nur dass es in meinem Aufbau etwas besser abschneidet.</p>
+Momentum-Läufen. Der Unterschied ist klein, gut ein Prozentpunkt, aber die Läufe überlappen nicht. Ein
+Widerspruch zur Folie ist das nicht, dort steht nur, dass Adam nicht unbedingt besser generalisiert.
+Bei mir bleiben alle Lernraten konstant, und ich habe pro Verfahren nur vier Werte ausprobiert. Ich
+würde daraus deshalb nicht schliessen, dass Adam allgemein besser generalisiert, nur dass es in meinem
+Aufbau etwas besser abschneidet.</p>
 <p>Nicht erwartet hatte ich, dass beide Verfahren viel früher overfitten als A. Die Val-Kosten sind schon
 nach fünf bis acht Epochen am tiefsten, bei A erst nach gut zwanzig, und der Gap in den Kosten ist am
 Ende fast doppelt so gross. Bei der besten Val-Accuracy liegen beide aber über A, weil die Accuracy
 nach dem Minimum der Kosten kaum sinkt. Vermutlich ist das dasselbe wie in 5.4, das Modell wird bei
-seinen Fehlern sicherer, ohne mehr Fehler zu machen. Fürs beste Modell nehme ich Adam mit 0.001
-trotzdem, weil es bei der besten Val-Accuracy vorne lag.</p>
+seinen Fehlern sicherer, ohne mehr Fehler zu machen. Auf derselben Folie steht auch, dass zu
+leistungsfähige Optimizer eher overfitten können. Das hatte ich bei der Hypothese übersehen. Fürs beste
+Modell nehme ich Adam mit 0.001 trotzdem, weil es bei der besten Val-Accuracy vorne lag.</p>
 </div>
 </div>
 </div>
@@ -10551,18 +10546,18 @@ höchstens ein Hinweis.</li>
 Wald-Bilder werden als <code>SeaLake</code> klassifiziert.</li>
 </ol>
 <h4 id="Begr%C3%BCndung">Begründung<a class="anchor-link" href="#Begr%C3%BCndung">¶</a></h4><p>Bei der Augmentation wird jedes Trainingsbild bei jedem Laden zufällig verändert, das Label bleibt
-gleich. Das Modell sieht dasselbe Bild dadurch in bis zu acht Varianten statt immer gleich und kann
-sich weniger auf zufällige Details einzelner Bilder verlassen (Shorten und Khoshgoftaar 2019). Die
-Veränderung darf das Label aber nicht verfälschen. Beim Spiegeln nennt Input <code>04_reg_augm</code> Text als
-Gegenbeispiel. Im Kursnotebook zu FashionMNIST haben wir nur horizontal und nicht vertikal gespiegelt,
-ein Kleidungsstück auf dem Kopf wäre dort auch unrealistisch. Ein Luftbild hat aber kein Oben und
-Unten. Spiegeln und Drehen um 90 Grad ergeben zusammen genau acht Varianten. Beliebige Winkel vermeide
-ich, weil an den Ecken schwarze Flächen entstehen würden.</p>
-<p>Bei der Farbe bin ich skeptischer. Sie wird in den Folien zwar auch als Möglichkeit genannt, und
-Krizhevsky et al. (2012) haben bei ImageNet mit einer Veränderung der Farbintensitäten etwas gewonnen.
-In der Fehleranalyse (8) wurde Wald aber oft für Wasser gehalten. In RGB bleibt zwischen den beiden
-vermutlich nur ein kleiner Unterschied in Farbe und Helligkeit, und wenn ich den beim Training
-zufällig verändere, dürfte die Verwechslung eher zunehmen.</p>
+gleich. Im Input <code>04_reg_augm</code> steht das unter den Möglichkeiten, den Trainingsdatensatz zu
+vergrössern. Das Modell sieht dasselbe Bild dadurch in bis zu acht Varianten statt immer gleich und
+kann sich weniger auf zufällige Details einzelner Bilder verlassen. Die Veränderung darf das Label aber
+nicht verfälschen. Beim Spiegeln nennt der Input Text als Gegenbeispiel. Im Kursnotebook zu
+FashionMNIST haben wir nur horizontal und nicht vertikal gespiegelt, ein Kleidungsstück auf dem Kopf
+wäre dort auch unrealistisch. Ein Luftbild hat aber kein Oben und Unten. Spiegeln und Drehen um 90 Grad
+ergeben zusammen genau acht Varianten. Beliebige Winkel vermeide ich, weil an den Ecken schwarze
+Flächen entstehen würden.</p>
+<p>Bei der Farbe bin ich skeptischer. Sie wird in den Folien zwar auch als Möglichkeit genannt. In der
+Fehleranalyse (8) wurde Wald aber oft für Wasser gehalten. In RGB bleibt zwischen den beiden vermutlich
+nur ein kleiner Unterschied in Farbe und Helligkeit, und wenn ich den beim Training zufällig verändere,
+dürfte die Verwechslung eher zunehmen.</p>
 <h4 id="Experiment">Experiment<a class="anchor-link" href="#Experiment">¶</a></h4><table>
 <thead>
 <tr>
@@ -10922,10 +10917,10 @@ werden. Bei p = 0.7 behalte ich nur 30 Prozent. Im Kursnotebook <code>cnn_dropou
 allen FC-Layern eingestellt, und dort lagen Train- und Test-Accuracy nach 30 Epochen klar unter dem
 Lauf ohne Dropout.</p>
 <p>Bei meinem Modell gehört Dropout zuerst in den FC-Teil, weil dort fast alle Parameter sitzen (5.1) und
-damit auch die Kapazität zum Auswendiglernen. Die Conv-Layer haben wenige Parameter, die über das
-ganze Bild geteilt werden. Dort nehme ich Dropout2d, das ganze Kanäle ausschaltet. In der PyTorch-Doku
-zu <code>Dropout2d</code> steht, dass normales Dropout bei Conv-Layern wenig bringt, wenn benachbarte Pixel stark
-korreliert sind, und sie verweist dafür auf Tompson et al. (2015).</p>
+damit auch die Kapazität zum Auswendiglernen. Die Conv-Layer haben wenige Parameter, die über das ganze
+Bild geteilt werden. Dort nehme ich Dropout2d, das ganze Kanäle ausschaltet. In der PyTorch-Doku zu
+<code>Dropout2d</code> steht, dass normales Dropout bei Conv-Layern wenig bringt, wenn benachbarte Pixel stark
+korreliert sind.</p>
 <h4 id="Experiment">Experiment<a class="anchor-link" href="#Experiment">¶</a></h4><table>
 <thead>
 <tr>
@@ -11225,18 +11220,18 @@ deutlich unter dem Basismodell mit BatchNorm (B aus Hypothese 1).</li>
 <h4 id="Begr%C3%BCndung">Begründung<a class="anchor-link" href="#Begr%C3%BCndung">¶</a></h4><p>Der Gradient für die Gewichte eines frühen Layers entsteht bei der Backpropagation durch alle späteren
 Layer hindurch. Nach der Kettenregel ist er ein Produkt mit einem Faktor pro Layer:</p>
 <p>$$\frac{\partial L}{\partial W_1} = \frac{\partial L}{\partial a_L} \cdot \prod_{k=2}^{L} \frac{\partial a_k}{\partial a_{k-1}} \cdot \frac{\partial a_1}{\partial W_1}$$</p>
-<p>Jeder Faktor $\partial a_k / \partial a_{k-1}$ hängt von den Gewichten des Layers und von der
-Ableitung der Aktivierungsfunktion ab. Ist er typischerweise kleiner als eins, schrumpft das Produkt
-exponentiell mit der Zahl der Layer, und die vorderen Layer bekommen kaum noch ein Signal (Glorot und
-Bengio 2010). Bei der Sigmoid-Funktion ist die Ableitung höchstens 0.25, dort ist das Problem also
-eingebaut. Die ReLU sättigt nicht, ihre Ableitung ist null oder eins. Sie setzt aber etwa die Hälfte
-der Ableitungen auf null und halbiert damit die Varianz pro Layer. Ob das Produkt schrumpft, hängt
-deshalb an den Gewichten. In Input <code>07_weights_initialization</code> werden als Gründe für verschwindende
-Gradienten sättigende Aktivierungsfunktionen, schlecht skalierte Gewichte und fehlende Normalisierung
-der Eingänge eines Layers genannt. Mit der ReLU fällt bei mir der erste weg, die anderen zwei treffen
-vermutlich zu. Den kleinen Faktor bei den Gewichten vermute ich, weil PyTorchs Default-Initialisierung
-die Varianz von Layer zu Layer schrumpfen lässt, das prüfe ich in Hypothese 6. Ohne BatchNorm fehlt
-auch die Normalisierung, darum geht es in Punkt 3.</p>
+<p>Jeder Faktor $\partial a_k / \partial a_{k-1}$ hängt von den Gewichten des Layers und von der Ableitung
+der Aktivierungsfunktion ab. Ist er typischerweise kleiner als eins, schrumpft das Produkt exponentiell
+mit der Zahl der Layer, und die vorderen Layer bekommen kaum noch ein Signal (Input
+<code>07_weights_initialization</code>). Bei der Sigmoid-Funktion ist die Ableitung höchstens 0.25, dort ist das
+Problem also eingebaut. Die ReLU sättigt nicht, ihre Ableitung ist null oder eins. Sie setzt aber etwa
+die Hälfte der Ableitungen auf null und halbiert damit die Varianz pro Layer. Ob das Produkt schrumpft,
+hängt deshalb an den Gewichten. Im selben Input werden als Gründe für verschwindende Gradienten
+sättigende Aktivierungsfunktionen, schlecht skalierte Gewichte und fehlende Normalisierung der Eingänge
+eines Layers genannt. Mit der ReLU fällt bei mir der erste weg, die anderen zwei treffen vermutlich zu.
+Den kleinen Faktor bei den Gewichten vermute ich, weil PyTorchs Default-Initialisierung die Varianz von
+Layer zu Layer schrumpfen lässt, das prüfe ich in Hypothese 6. Ohne BatchNorm fehlt auch die
+Normalisierung, darum geht es in Punkt 3.</p>
 <p>Den Gradienten im ersten Conv-Layer vergleiche ich direkt. Das Verhältnis zwischen erstem und letztem
 Layer, das ich bei den ersten Läufen mitgeschrieben habe, taugt dafür schlecht, weil im Gradienten
 eines Gewichts auch die Aktivierung steckt, die in den Layer hineinkommt, und die wird nach hinten
@@ -11249,8 +11244,8 @@ nur auf eine Train-Accuracy von gut einem Drittel, das Basismodell auf rund 0.7.
 beobachten auch, dass tiefere Netze schon auf den Trainingsdaten schlechter werden können, das kam im
 Unterricht beim ResNet vor (Input <code>08_imagenet_architectures</code>). Ihre Netze haben allerdings BatchNorm,
 und sie führen das ausdrücklich nicht auf verschwindende Gradienten zurück.</p>
-<p>BatchNorm normalisiert die Ausgabe jedes Conv-Layers, egal wie gross die Gewichte sind (Ioffe und
-Szegedy 2015). Der Faktor pro Layer sollte damit nicht mehr beliebig schrumpfen, und das tiefe Netz
+<p>BatchNorm normalisiert die Ausgabe jedes Conv-Layers, egal wie gross die Gewichte sind (Input
+<code>05_batchnorm</code>). Der Faktor pro Layer sollte damit nicht mehr beliebig schrumpfen, und das tiefe Netz
 müsste mit BatchNorm wieder normal lernen. Vergleichen muss ich es dann mit B und nicht mit A, sonst
 würde ein allgemeiner Gewinn durch BatchNorm einen Verlust durch die Tiefe verdecken.</p>
 <h4 id="Experiment">Experiment<a class="anchor-link" href="#Experiment">¶</a></h4><p>Die Zahl der Pooling-Stufen bleibt bei drei. Die Conv-Layer verteile ich gleichmässig darauf, also
@@ -11616,14 +11611,14 @@ Gewichte haben also die Varianz $1/(3 \cdot n_{in})$. Für einen Layer, dessen E
 kommt, gilt ungefähr</p>
 <p>$$\mathrm{Var}(z_l) \approx \frac{n_{in}}{2} \cdot \mathrm{Var}(W_l) \cdot \mathrm{Var}(z_{l-1})$$</p>
 <p>Der Faktor $1/2$ kommt daher, dass die ReLU etwa die Hälfte der Werte auf null setzt. Damit die Varianz
-gleich bleibt, braucht es $\mathrm{Var}(W) = 2/n_{in}$. Das ist die He-Initialisierung (He et al.
-2015), in PyTorch <code>kaiming_normal_</code> oder <code>kaiming_uniform_</code>. Der Default ruft also dieselbe Funktion
-auf, nur macht der Parameter $a = \sqrt{5}$ die Varianz sechsmal kleiner. Pro Layer ist der Faktor dann
-$1/6$, die Standardabweichung schrumpft also um $\sqrt{6} \approx 2.4$. Glorot und Bengio (2010) haben
-dieselbe Überlegung zuerst für symmetrische Aktivierungen wie tanh gemacht (Input
-<code>07_weights_initialization</code>). Im Input und im Kursnotebook dazu waren die Gewichte als schlechtes
-Beispiel standardnormalverteilt und damit viel zu gross. Beim Default von PyTorch sind sie nach meiner
-Rechnung umgekehrt zu klein.</p>
+gleich bleibt, braucht es $\mathrm{Var}(W) = 2/n_{in}$. Das ist die He- oder Kaiming-Initialisierung
+aus Input <code>07_weights_initialization</code>, in PyTorch <code>kaiming_normal_</code> oder <code>kaiming_uniform_</code>. Der
+Default ruft also dieselbe Funktion auf, nur macht der Parameter $a = \sqrt{5}$ die Varianz sechsmal
+kleiner. Pro Layer ist der Faktor dann $1/6$, die Standardabweichung schrumpft also um $\sqrt{6}
+\approx 2.4$. Für symmetrische Aktivierungen wie tanh gibt es dort mit der Glorot-Initialisierung
+dieselbe Überlegung. Im Input und im Kursnotebook dazu waren die Gewichte als schlechtes Beispiel
+standardnormalverteilt und damit viel zu gross. Beim Default von PyTorch sind sie nach meiner Rechnung
+umgekehrt zu klein.</p>
 <p>Rückwärts gilt fast dieselbe Rechnung für die Gradienten. Das ist der kleine Faktor pro Layer aus
 Hypothese 5, und beim tiefen Netz multipliziert er sich über mehr Layer. Beim Basismodell mit drei
 Conv-Layern käme zusammen aber auch schon mehr als ein Faktor zehn heraus. Trotzdem hat es in 5.4 den
@@ -12099,13 +12094,12 @@ mehr Parametern die Trainingsdaten stärker auswendig lernen und damit stärker 
 nächsten Folie mit dem Titel "Deep Double Descent" steht allerdings, dass bei modernen Netzen Bias und
 Varianz gleichzeitig kleiner werden können. In 5.3 sah es bei mir ähnlich aus. Das breitere Modell
 hatte die höhere Val-Accuracy und den kleineren Gap in der Accuracy, allerdings mit nur einem Seed und
-knapp über der Streuung. Auf der Folie sind dazu mehrere Papers verlinkt. Neal et al. (2018) finden,
-dass bei breiteren Netzen nicht nur der Bias, sondern auch die Varianz kleiner werden kann. Ob mein
-Ergebnis aus 5.3 mehr als Zufall war, will ich mit mehreren Seeds prüfen.</p>
-<p>Gegen die zweite Vorhersage spricht, was Guo et al. (2017) beschreiben, die ich schon in 5.4 zitiert
-habe. Grössere Netze sind bei gleicher Accuracy sicherer und schlechter kalibriert. Das erhöht die
-Val-Kosten, und der Gap in den Kosten könnte beim breiten Modell deshalb grösser sein, auch wenn die
-Val-Accuracy steigt.</p>
+knapp über der Streuung. Ob mein Ergebnis aus 5.3 mehr als Zufall war, will ich mit mehreren Seeds
+prüfen.</p>
+<p>Gegen die zweite Vorhersage spricht meine Beobachtung aus 5.4. Dort sind die Val-Kosten gestiegen,
+vermutlich weil das Modell bei falsch klassifizierten Bildern immer sicherer wurde. Ein breiteres
+Modell lernt die Trainingsdaten vielleicht schneller auswendig und wird dabei noch sicherer. Dann wäre
+der Gap in den Kosten grösser, auch wenn die Val-Accuracy steigt.</p>
 <h4 id="Experiment">Experiment<a class="anchor-link" href="#Experiment">¶</a></h4><p>Die Breite skaliere ich in allen Conv-Layern und im versteckten FC-Layer mit demselben Faktor. Die
 Lernrate bleibt bei 0.03, damit lief das breite Modell in 5.3 stabil.</p>
 <table>
@@ -12334,16 +12328,16 @@ die halbe Breite ist kaum schlechter. Das Ergebnis aus 5.3, wo das breite Modell
 mit mehreren Seeds nicht wiederholt.</p>
 <p>Beim Minimum der Val-Kosten ist Punkt 2 widerlegt. Es kommt mit doppelter Breite bei allen drei Seeds
 früher als bei allen A-Läufen. Vermutlich lernt das breite Modell die Trainingsdaten schneller und
-fängt deshalb auch früher an zu overfitten. Beim Gap in den Kosten überlappen die Läufe, dort ist
-Punkt 2 nicht widerlegt. Bei zwei der drei breiten Läufe springen die Train-Kosten in der letzten
-Epoche aber nach oben, deshalb ist ihre Train-Accuracy am Ende tiefer als bei A, und der Gap fällt
-kleiner aus. Ob das breite Modell schlechter kalibriert ist, wie ich nach Guo et al. befürchtet hatte,
-kann ich daraus nicht ablesen.</p>
+fängt deshalb auch früher an zu overfitten. Beim Gap in den Kosten überlappen die Läufe, dort ist Punkt
+2 nicht widerlegt. Bei zwei der drei breiten Läufe springen die Train-Kosten in der letzten Epoche aber
+nach oben, deshalb ist ihre Train-Accuracy am Ende tiefer als bei A, und der Gap fällt kleiner aus. Ob
+das breite Modell bei falschen Bildern sicherer ist, wie ich in der Begründung befürchtet hatte, kann
+ich daraus nicht ablesen.</p>
 <p>Mit viermal so vielen Parametern steigen die Val-Kosten bei mir früher wieder. Einen Gewinn durch die
-Breite wie bei Neal et al. (2018) sehe ich nicht. Vielleicht ist die Breite bei mir nicht der Engpass.
-Auch mit halber Breite hat das Modell über eine halbe Million Parameter, die meisten im ersten
-FC-Layer, und lernt die 6000 Trainingsbilder fast auswendig. Die doppelte Breite kostet pro Epoche
-ungefähr doppelt so viel Zeit.</p>
+Breite, wie ihn die Folie zum Deep Double Descent nahelegt, sehe ich nicht. Vielleicht ist die Breite
+bei mir nicht der Engpass. Auch mit halber Breite hat das Modell über eine halbe Million Parameter, die
+meisten im ersten FC-Layer, und lernt die 6000 Trainingsbilder fast auswendig. Die doppelte Breite
+kostet pro Epoche ungefähr doppelt so viel Zeit.</p>
 </div>
 </div>
 </div>
@@ -12361,12 +12355,12 @@ stattdessen nicht lohnen:</p>
 <li>Eine Epoche dauert mit 5×5 länger, aber weniger als 2.8-mal so lange.</li>
 </ol>
 <h4 id="Begr%C3%BCndung">Begründung<a class="anchor-link" href="#Begr%C3%BCndung">¶</a></h4><p>Bei 10 m pro Pixel sieht ein 3×3-Kernel 30 × 30 m Boden, ein 5×5-Kernel 50 × 50 m. Durch das Pooling
-sieht aber schon der dritte Conv-Layer des Basismodells einen Ausschnitt von 18 × 18 Pixeln, also 180
-× 180 m, und der FC-Teil verbindet danach ohnehin alle Positionen. Simonyan und Zisserman (2015)
-argumentieren, dass sich ein grosser Kernel durch mehrere kleine ersetzen lässt, die zusammen
-denselben Ausschnitt sehen, mit weniger Gewichten und mehr Nichtlinearitäten. Ihr VGGNet kam in Input
-<code>08_imagenet_architectures</code> vor. Es verwendet nur 3×3-Kernel. Drei davon hintereinander decken so viel
-ab wie ein 7×7-Kernel, zwei so viel wie mein 5×5-Kernel.</p>
+sieht aber schon der dritte Conv-Layer des Basismodells einen Ausschnitt von 18 × 18 Pixeln, also 180 ×
+180 m, und der FC-Teil verbindet danach ohnehin alle Positionen. Das VGGNet aus Input
+<code>08_imagenet_architectures</code> verwendet nur 3×3-Kernel. Drei davon hintereinander sehen laut Folie
+denselben Ausschnitt wie ein 7×7-Kernel, mit mehr Nichtlinearitäten dazwischen, zwei so viel wie mein
+5×5-Kernel. Zwei 3×3-Kernel brauchen dabei auch weniger Gewichte, 18 statt 25 pro Paar von Ein- und
+Ausgangskanal.</p>
 <p>Rechnerisch wächst die Arbeit der Conv-Layer mit der Fläche des Kernels, also um 25/9 ≈ 2.8. Wie viel
 davon auf meiner CPU ankommt, kann ich schlecht abschätzen. Das breite Modell aus 5.3 hat fast viermal
 so viele Multiplikationen wie <code>base</code>, war dort pro Epoche aber nur wenig langsamer. In 10.7 war
@@ -12990,21 +12984,21 @@ Val-Accuracy deutlich über dem Basismodell mit demselben Optimizer.</li>
 </ol>
 <h4 id="Begr%C3%BCndung">Begründung<a class="anchor-link" href="#Begr%C3%BCndung">¶</a></h4><p>In 2.1 habe ich geschrieben, dass ich das Ergebnis hier offen finde. Für die Hypothese lege ich mich
 trotzdem fest. Im Unterricht wurde Transfer Learning für den Fall vorgestellt, dass man nur wenige
-gelabelte Daten hat (Input <code>08_imagenet_architectures</code>). Auf den Folien wurde dazu ein Paper von
-Razavian et al. (2014) zitiert. Bei ihnen haben die Features eines vortrainierten Netzes sogar bei
-Aufgaben gut funktioniert, die weit von der ursprünglichen entfernt waren, ohne dass das Netz weiter
-trainiert wurde. Yosinski et al. (2014) zeigen, dass die frühen Layer eines Netzes allgemeine Features
-wie Kanten und Farbverläufe lernen, die sich gut auf andere Aufgaben übertragen lassen. Je weiter
-hinten ein Layer liegt, desto spezifischer sind seine Features für die ursprüngliche Aufgabe. Das
-ResNet18 hat auf über einer Million ImageNet-Bildern gelernt, mein Basismodell nur auf 6000. Die
-allgemeinen Features sollten deshalb besser sein als das, was mein Modell selbst lernen kann.</p>
+gelabelte Daten hat (Input <code>08_imagenet_architectures</code>). Auf den Folien steht dazu ein Beispiel, bei
+dem die Features eines vortrainierten Netzes sogar bei Aufgaben gut funktioniert haben, die weit von
+der ursprünglichen entfernt waren, ohne dass das Netz weiter trainiert wurde. Yosinski et al. (2014)
+zeigen, dass die frühen Layer eines Netzes allgemeine Features wie Kanten und Farbverläufe lernen, die
+sich gut auf andere Aufgaben übertragen lassen. Je weiter hinten ein Layer liegt, desto spezifischer
+sind seine Features für die ursprüngliche Aufgabe. Das ResNet18 hat auf über einer Million
+ImageNet-Bildern gelernt, mein Basismodell nur auf 6000. Die allgemeinen Features sollten deshalb
+besser sein als das, was mein Modell selbst lernen kann.</p>
 <p>ImageNet besteht aber aus Fotos von Objekten, meist von der Seite und aufrecht aufgenommen. EuroSAT
 besteht aus Luftbildern von oben ohne feste Orientierung. Ich vermute, dass die Features der letzten
-Stufe, die eher auf ganze Objekte ansprechen, dazu schlecht passen. Trainiere ich diese Stufe mit,
-kann sie sich an Luftbilder anpassen. Razavian et al. haben allerdings gerade Features aus einem der
-letzten Layer verwendet, und die haben trotzdem gut funktioniert. Punkt 2 ist deshalb der unsicherere
-Teil. Ich stütze ihn vor allem auf Yosinski et al., bei denen die späten Layer schlechter übertragbar
-sind, je weiter die neue Aufgabe von der alten entfernt ist.</p>
+Stufe, die eher auf ganze Objekte ansprechen, dazu schlecht passen. Trainiere ich diese Stufe mit, kann
+sie sich an Luftbilder anpassen. Das Beispiel auf den Folien spricht allerdings dagegen, dort haben die
+Features auch bei weit entfernten Aufgaben ohne jedes Weitertrainieren funktioniert. Punkt 2 ist
+deshalb der unsicherere Teil. Ich stütze ihn vor allem auf Yosinski et al., bei denen die späten Layer
+schlechter übertragbar sind, je weiter die neue Aufgabe von der alten entfernt ist.</p>
 <h4 id="Experiment">Experiment<a class="anchor-link" href="#Experiment">¶</a></h4><p>Ich nehme das ResNet18 von He et al. (2016), das im Kurs in Input <code>08_imagenet_architectures</code> vorkam,
 mit den ImageNet-Gewichten aus torchvision und ersetze den letzten Layer durch einen neuen mit 10
 Ausgängen. Die Bilder skaliere ich von 64 auf 224 Pixel hoch und normalisiere mit den Statistiken von
@@ -13362,9 +13356,8 @@ Eval-Modus messen und beide aus dem geglätteten Verlauf nehmen.</p>
 <li>Spiegeln und Drehen um Vielfache von 90 Grad (Hypothese 3),</li>
 <li>Adam mit Lernrate 0.001 (Hypothese 2).</li>
 </ul>
-<p>In den Conv-Layern käme Dropout vor das BatchNorm des nächsten Blocks. Beim Training sieht BatchNorm
-dann die ausgeschalteten Werte und schätzt eine Varianz, die bei der Evaluation ohne Dropout nicht
-mehr stimmt (Li et al. 2019). Deshalb setze ich Dropout hier nur im FC-Teil ein.</p>
+<p>In den Conv-Layern lasse ich Dropout weg. Dort regularisiert BatchNorm schon etwas (Hypothese 1), und
+wie sich die beiden zusammen verhalten, habe ich nicht untersucht.</p>
 <p>Breite, Kernel Size, Pooling und Initialisierung bleiben wie im Basismodell. Trainiert wird wie in
 Abschnitt 10 mit einem Seed und 30 Epochen auf dem Subset. Vergleichen will ich mit meinem besten
 eigenen Lauf aus Abschnitt 10, dem Netz mit sechs Conv-Layern und BatchNorm, und mit dem ResNet18 aus
@@ -14074,45 +14067,13 @@ allem das Lernen gebremst.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Referenzen">Referenzen<a class="anchor-link" href="#Referenzen">¶</a></h2><p>Glorot, X., Bengio, Y. (2010). Understanding the difficulty of training deep feedforward neural
-networks. AISTATS.</p>
-<p>Goyal, P. et al. (2017). Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour. arXiv:1706.02677.</p>
-<p>Guo, C., Pleiss, G., Sun, Y., Weinberger, K. Q. (2017). On Calibration of Modern Neural Networks.
-ICML.</p>
-<p>He, K., Zhang, X., Ren, S., Sun, J. (2015). Delving Deep into Rectifiers: Surpassing Human-Level
-Performance on ImageNet Classification. ICCV.</p>
-<p>He, K., Zhang, X., Ren, S., Sun, J. (2016). Deep Residual Learning for Image Recognition. CVPR.</p>
+<h2 id="Referenzen">Referenzen<a class="anchor-link" href="#Referenzen">¶</a></h2><p>He, K., Zhang, X., Ren, S., Sun, J. (2016). Deep Residual Learning for Image Recognition. CVPR.</p>
 <p>Helber, P., Bischke, B., Dengel, A., Borth, D. (2019). EuroSAT: A Novel Dataset and Deep Learning
 Benchmark for Land Use and Land Cover Classification. IEEE JSTARS, 12(7).</p>
-<p>Ioffe, S., Szegedy, C. (2015). Batch Normalization: Accelerating Deep Network Training by Reducing
-Internal Covariate Shift. ICML.</p>
-<p>Kingma, D. P., Ba, J. (2015). Adam: A Method for Stochastic Optimization. ICLR.</p>
-<p>Krizhevsky, A., Sutskever, I., Hinton, G. E. (2012). ImageNet Classification with Deep Convolutional
-Neural Networks. NeurIPS.</p>
-<p>Li, X., Chen, S., Hu, X., Yang, J. (2019). Understanding the Disharmony between Dropout and Batch
-Normalization by Variance Shift. CVPR.</p>
-<p>Neal, B., Mittal, S., Baratin, A., Tantia, V., Scicluna, M., Lacoste-Julien, S., Mitliagkas, I.
-(2018). A Modern Take on the Bias-Variance Tradeoff in Neural Networks. arXiv:1810.08591.</p>
-<p>Prechelt, L. (1998). Early Stopping - But When? In: Orr, G. B., Müller, K.-R. (Hrsg.), Neural
-Networks: Tricks of the Trade. Springer.</p>
-<p>Razavian, A. S., Azizpour, H., Sullivan, J., Carlsson, S. (2014). CNN Features off-the-shelf: an
-Astounding Baseline for Recognition. arXiv:1403.6382.</p>
-<p>Santurkar, S., Tsipras, D., Ilyas, A., Madry, A. (2018). How Does Batch Normalization Help
-Optimization? NeurIPS.</p>
 <p>Scherer, D., Müller, A., Behnke, S. (2010). Evaluation of Pooling Operations in Convolutional
 Architectures for Object Recognition. ICANN.</p>
-<p>Shorten, C., Khoshgoftaar, T. M. (2019). A survey on Image Data Augmentation for Deep Learning.
-Journal of Big Data, 6.</p>
-<p>Simonyan, K., Zisserman, A. (2015). Very Deep Convolutional Networks for Large-Scale Image
-Recognition. ICLR.</p>
 <p>Srivastava, N., Hinton, G., Krizhevsky, A., Sutskever, I., Salakhutdinov, R. (2014). Dropout: A Simple
 Way to Prevent Neural Networks from Overfitting. JMLR, 15.</p>
-<p>Sutskever, I., Martens, J., Dahl, G., Hinton, G. (2013). On the importance of initialization and
-momentum in deep learning. ICML.</p>
-<p>Tompson, J., Goroshin, R., Jain, A., LeCun, Y., Bregler, C. (2015). Efficient Object Localization
-Using Convolutional Networks. CVPR.</p>
-<p>Wilson, A. C., Roelofs, R., Stern, M., Srebro, N., Recht, B. (2017). The Marginal Value of Adaptive
-Gradient Methods in Machine Learning. NeurIPS.</p>
 <p>Yosinski, J., Clune, J., Bengio, Y., Lipson, H. (2014). How transferable are features in deep neural
 networks? NeurIPS.</p>
 <p>Inputs aus dem Trainingscenter DEL: <code>03_CNNs</code>, <code>04_reg_augm</code>, <code>05_batchnorm</code>, <code>06_optimizers</code>,
